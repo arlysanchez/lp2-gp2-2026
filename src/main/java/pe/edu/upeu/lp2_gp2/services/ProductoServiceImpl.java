@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ProductoServiceServiceImpl implements IProductoService {
+public class ProductoServiceImpl implements IProductoService {
     private final ProductoRepository productoRepository;
 
-    public ProductoServiceServiceImpl(ProductoRepository productoRepository) {
+    public ProductoServiceImpl(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
     }
 
@@ -28,23 +28,42 @@ public class ProductoServiceServiceImpl implements IProductoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<ProductoDTO> buscarPorId(Long id) {
-        return Optional.empty();
+        return productoRepository.findById(id).map(this::convertToDTO);
     }
 
     @Override
+    @Transactional
     public ProductoDTO crear(ProductoDTO p) {
-        return null;
+        Producto pro = new Producto();
+        pro.setNombre(p.nombre());
+        pro.setDescripcion(p.descripcion());
+        pro.setPrecio(p.precio());
+        pro.setStock(p.stock());
+        return convertToDTO(productoRepository.save(pro));
     }
 
     @Override
+    @Transactional
     public Optional<ProductoDTO> actualizar(Long id, ProductoDTO p) {
-        return Optional.empty();
+        return productoRepository.findById(id).map(pro->{
+            pro.setNombre(p.nombre());
+            pro.setDescripcion(p.descripcion());
+            pro.setPrecio(p.precio());
+            pro.setStock(p.stock());
+            return convertToDTO(productoRepository.save(pro));
+        });
     }
 
     @Override
+    @Transactional
     public boolean eliminar(Long id) {
-        return false;
+       if(productoRepository.existsById(id)){
+           productoRepository.deleteById(id);
+           return true;
+       }
+       return  false;
     }
 
     private  ProductoDTO convertToDTO(Producto p){
